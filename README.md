@@ -14,7 +14,7 @@
 
 1.  from the command line or git gui, clone the repository: https://github.com/full-stakk/flask-rest.git
 2.  cd into the directory from command line
-3.  Create a virtual environment: `python3 -m venv fr`
+3.  Create a virtual environment: `python3 -m venv env`
 4.  Use venv:
     * Mac/Linux: `source fr/bin/activate` (to leave a virtual environment type `deactivate`)
 5.  Install dependencies into virtual environment: 
