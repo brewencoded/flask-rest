@@ -7,7 +7,7 @@
      * Mac: comes with python3. chould be able to check by typing `pip3 --version` from terminal
      * Linux: both python 2 and 3 come by default on newer linux. pip may need to be installed via `sudo-apt-get install python3-pip`
      * Windows: 
-     * Pip may need to be upgraded `pip3 install --upgrade pip`
+     * Pip may need to be upgraded `pip3 install --upgrade pip` (Can be done once you are in a virtual environment)
 3.  Install any text editor:
     * [Pycharm Community Edition](https://www.jetbrains.com/pycharm/), [Sublime Text](https://dbader.org/blog/setting-up-sublime-text-for-python-development), and [Atom](http://www.marinamele.com/install-and-configure-atom-editor-for-python) are all great for this. **I highly recommend Atom or PyCharm for people who don't like configuring an editor.**
 
