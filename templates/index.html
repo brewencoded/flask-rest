@@ -1,0 +1,92 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>REST template</title>
+    <link rel="stylesheet" href="/static/css/app.css">
+</head>
+<body>
+    {% raw %}
+    <div id="app">
+        <div class="header">
+            <ul>
+                <li v-link-active><a v-link="{name: 'articles'}">Articles</a></li>
+                <li v-link-active><a v-link="{name: 'about'}">About</a></li>
+                <li v-link-active><a v-link="{name: 'login'}">Login</a></li>
+                <li v-link-active><a v-link="{name: 'register'}">Register</a></li>
+                <li v-link-active><a v-link="{name: 'index', exact: true}">Home</a></li>
+            </ul>
+        </div>
+        <router-view :storage.sync="storage"></router-view>
+    </div>
+
+    <template id="index">
+        <div class="page-wrapper center">
+            <h1>Welcome to the REST template</h1>
+        </div>
+    </template>
+
+    <template id="articles">
+        <div class="article-list page-wrapper">
+            <ul class="article-link">
+                <li v-for="article in articles"><a v-link="{name: 'article', params: {id: article.id}}">{{article.title}}</a></li>
+            </ul>
+        </div>
+    </template>
+
+    <template id="article">
+        <div class="article page-wrapper">
+            <h1 class="center">{{article.title}}</h1>
+            <p>{{article.body}}</p>
+            <button class="edit">Edit</button>
+            <button class="delete">Delete</button>
+        </div>
+    </template>
+
+    <template id="about">
+        <div class="page-wrapper">
+            <h1 class="center">About us</h1>
+            <p>Lorem ipsum dolor sit amet, deleniti consulatu ius no. Ei noster voluptatum quo. Et propriae voluptatum sed. Has tale eloquentiam definitionem an, sit prompta consulatu interesset eu. At sale nonumy officiis eam.</p>
+            <p>Te sea wisi posse veniam, ius cu dico affert omnesque. Mel latine alterum repudiare ad, at sea nulla aliquid. In nam persius commune, at soleat cotidieque eos. Sale everti cu sit, ea per indoctum mediocrem interpretaris.</p>
+            <p>Ea vim aperiam saperet. Vim liber omnesque luptatum ex, ne dicam graeco adversarium mel, decore detracto ea qui. Mei ad vide aliquam lucilius, est eu quas iuvaret. Ex viris incorrupte nec, eu aeque dolor per. Ne error elitr tollit has, iusto omittam aliquando id duo.</p>
+        </div>
+    </template>
+
+    <template id="login">
+        <div class="page-wrapper">
+            <h1 class="center">Login</h1>
+            <form @submit="login">
+                <input type="email" placeholder="email" v-model="email">
+                <input type="password" placeholder="password" v-model="password">
+                <input type="submit" value="Login">
+            </form>
+        </div>
+    </template>
+
+    <template id="register">
+        <div class="page-wrapper">
+            <h1 class="center">Register</h1>
+            <form @submit="register">
+                <input type="email" placeholder="email" v-model="email">
+                <input type="password" placeholder="password" v-model="password">
+                <input type="password" placeholder="password again" v-model="passwordVerify">
+                <input type="submit" value="Register">
+            </form>
+        </div>
+    </template>
+
+    <template id="not-found">
+        <div class="page-wrapper">
+            <h1>404</h1>
+            <h3>The resource you are looking for cannot be found.</h3>
+            <p>Click <a>here</a> to return to the home page.</p>
+        </div>
+    </template>
+
+    {% endraw %}
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/vue/1.0.21/vue.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/vue-router/0.7.10/vue-router.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/vue-resource/0.7.0/vue-resource.js"></script>
+    <script src="/static/js/app.js"></script>
+</body>
+</html>
