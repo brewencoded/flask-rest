@@ -1,9 +1,9 @@
 """Database models."""
 import datetime
+import bcrypt
 from peewee import *
 
 DATABASE = SqliteDatabase('app.db')
-
 
 class BaseModel(Model):
     """Specifies database connection."""

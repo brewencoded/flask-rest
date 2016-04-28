@@ -3,12 +3,9 @@ from flask import Flask
 from flask import render_template
 
 import models
+import config
 from resources.users import users_api
 from resources.articles import articles_api
-
-DEBUG = True
-HOST = '0.0.0.0'
-PORT = 8000
 
 app = Flask(__name__)
 app.register_blueprint(users_api, url_prefix='/api/v1')
@@ -24,4 +21,4 @@ def index(path):
 """Start server if app.py is run directly"""
 if __name__ == '__main__':
     models.initialize()
-    app.run(debug=DEBUG, port=PORT, host=HOST)
+    app.run(debug=config.DEBUG, port=config.PORT, host=config.HOST)
