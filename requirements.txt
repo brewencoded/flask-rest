@@ -1,5 +1,15 @@
+aniso8601==1.1.0
 Flask==0.10.1
+Flask-RESTful==0.3.5
 itsdangerous==0.24
 Jinja2==2.8
 MarkupSafe==0.23
+mccabe==0.4.0
+peewee==2.8.0
+pep257==0.7.0
+pep8==1.7.0
+pyflakes==1.0.0
+python-dateutil==2.5.3
+pytz==2016.4
+six==1.10.0
 Werkzeug==0.11.9
