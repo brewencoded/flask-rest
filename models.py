@@ -16,7 +16,7 @@ class User(BaseModel):
     """A user of the app."""
 
     name = CharField()
-    email = CharField(unique=True)
+    email = CharField(primary_key=True)
     password = CharField()
     created_at = DateTimeField(default=datetime.datetime.now)
 

@@ -1,8 +1,27 @@
 """This module handles calls to the database based on URIs it recieves."""
-from flask.ext.restful import Resource, Api
+from flask.ext.restful import (Resource, Api, fields, marshal_with, marshal,
+                               reqparse, abort)
 from flask import jsonify, Blueprint
 
 import models
+import datetime
+
+# Response definitions
+article_fields = {
+    'id': fields.Integer,
+    'title': fields.String,
+    'body': fields.String,
+    'created_at': fields.DateTime
+}
+
+
+def article_or_404(id):
+    try:
+        article = models.Article.select().where(models.Article.id == id).get()
+    except models.Article.DoesNotExist:
+        abort(404, message="Article does not exist.")
+    else:
+        return article
 
 
 class ArticleList(Resource):
@@ -10,35 +29,64 @@ class ArticleList(Resource):
 
     def get(self):
         """return a list of articles."""
-        return jsonify({'articles': [
-                        {'title': 'test', 'body': 'lorem ipsum'},
-                        {'title': 'tes', 'body': 'et ipsum'}
-                        ]})
+        parser = reqparse.RequestParser()
+        parser.add_argument('email', type=str, help="Email is required", required=True)
+        args = parser.parse_args()
+
+        user = models.User.select().where(models.User.email == args['email']).get()
+        articles = [marshal(article, article_fields) for article in models.Article.select().where(models.Article.user == user)]
+
+        return articles
+
+    @marshal_with(article_fields)
+    def post(self):
+        """create a articles."""
+        parser = reqparse.RequestParser()
+        parser.add_argument('email', type=str, help="Email is required", required=True)
+        parser.add_argument('title', type=str, help="Title is required", required=True)
+        parser.add_argument('body', type=str, help="Article is required", required=True)
+        args = parser.parse_args()
+
+        user = models.User.select().where(models.User.email == args['email']).get()
+
+        article = models.Article.create(
+            title=args['title'],
+            body=args['body'],
+            user=user,
+            created_at=datetime.datetime.now()
+        )
+        return (article, 201, {
+            'id': article.id
+        })
 
 
 class Article(Resource):
     """Handles article methods."""
 
-    def get(self, id):
+    @marshal_with(article_fields)
+    def get(self):
         """get a article."""
-        return jsonify({'article':
-                        {'title': 'test', 'body': 'lorem ipsum'}
-                        })
+        parser = reqparse.RequestParser()
+        parser.add_argument('id', type=int, help="Id is required", required=True)
+        args = parser.parse_args()
+        return article_or_404(args['id'])
 
     def put(self, id):
         """update a article."""
-        return jsonify({'article':
-                        {'title': 'test', 'body': 'lorem ipsum'}
-                        })
+        parser = reqparse.RequestParser()
+        parser.add_argument('id', type=int, help="Id is required", required=True)
+        args = parser.parse_args()
+
+        query = models.Article.update(**args).where(models.Article.id == args['id'])
+        query.execute()
+        return (
+                models.Article.select().where(models.Article.id == args['id']),
+                200,
+                {'id': id}
+                )
 
     def delete(self, id):
         """delete a articles."""
-        return jsonify({'article':
-                        {'title': 'test', 'body': 'lorem ipsum'}
-                        })
-
-    def post(self, id):
-        """create a articles."""
         return jsonify({'article':
                         {'title': 'test', 'body': 'lorem ipsum'}
                         })
@@ -68,6 +116,6 @@ api.add_resource(
 
 api.add_resource(
     Article,
-    '/article/<int:id>',
+    '/article',
     endpoint='article'
 )

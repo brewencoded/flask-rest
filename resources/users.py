@@ -1,5 +1,6 @@
 """This module handles calls to the database based on URIs it recieves."""
-from flask.ext.restful import Resource, Api, fields, marshal, marshal_with, reqparse, abort
+from flask.ext.restful import (Resource, Api, fields, marshal, marshal_with,
+                               reqparse, abort)
 from flask import jsonify, Blueprint
 
 import models
