@@ -55,7 +55,23 @@
             };
         },
         methods: {
-            login: function () {}
+            login: function (e) {
+                e.preventDefault();
+                var component = this;
+                Vue.http.get('/api/v1/users/token', {}, {
+                    headers: {
+                        'Authorization': 'Basic ' + window.btoa(component.email + ':' + component.password)
+                    }
+                })
+                .then(function(response) {
+                    console.log(response);
+                    window.localStorage.webToken = response.data.token;
+                    window.localStorage.webUser = component.email;
+                },
+                function (error) {
+                    console.log('token retrieval failed');
+                });
+            }
         }
     });
 
@@ -63,13 +79,43 @@
         template: '#register',
         data: function () {
             return {
+                name: '',
                 email: '',
                 password: '',
                 passwordVerify: ''
             };
         },
         methods: {
-            register: function () {}
+            register: function (e) {
+                e.preventDefault();
+                var component = this;
+                Vue.http.post('/api/v1/user', {
+                    name: component.name,
+                    email: component.email,
+                    password: component.password
+                })
+                .then(function (response) {
+                    if(response.data.message == 'User created') {
+                        Vue.http.get('/api/v1/users/token', {
+                            email: component.email,
+                            password: component.password
+                        })
+                        .then(function(response) {
+                            console.log(reponse);
+                            window.localStorage.webToken = response.data.token;
+                            window.localStorage.webUser = component.email;
+                        },
+                        function (error) {
+                            console.log('token retrieval failed');
+                        });
+                    } else {
+                        console.log('the api may have changed');
+                    }
+                },
+                function (error) {
+                    console.log(error);
+                });
+            }
         }
     });
 
@@ -80,15 +126,27 @@
     // Router
     var Root = Vue.extend({
         compiled: function () {
-            Vue.http.get('/api/read/user', {
-                token: 'temp'
-            })
-            .then(function (response) {
-                console.log(response);
-            },
-            function (error) {
-                console.log(error);
-            });
+            // check if has token
+            if(window.localStorage.webToken != undefined) {
+                // make sure token is still valid and if it is, get user data
+                Vue.http.get('/api/v1/user', {
+                    email: window.localStorage.webUser
+                },
+                {
+                    headers: {
+                        'Authorization': 'Token ' + window.localStorage.webToken
+                    }
+                })
+                .then(function (response) {
+                    console.log(response);
+                },
+                function (error) {
+                    console.log(error);
+                });
+            } else {
+
+            }
+
         },
         data: function () {
             return {

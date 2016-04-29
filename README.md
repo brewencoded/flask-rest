@@ -4,8 +4,8 @@
 
 1.  Install python 3 [Get it here](https://www.python.org/downloads/). Check if it installed correctly by typing (cmd/terminal): `python3` you should get a python repl. type `exit()` to leave the repl.
 2.   Install pip:
-     * Mac: comes with python3. chould be able to check by typing `pip3 --version` from terminal
-     * Linux: both python 2 and 3 come by default on newer linux. pip may need to be installed via `sudo-apt-get install python3-pip`
+     * Mac: comes with python3. should be able to check by typing `pip3 --version` from terminal
+     * Linux: both python 2 and 3 come by default on newer linux. pip may need to be installed via `sudo apt-get install python3-pip` and additional libraries may also be needed `sudo apt-get install python3-dev`s
      * Windows:
      * Pip may need to be upgraded `pip3 install --upgrade pip` (Can be done once you are in a virtual environment)
 3.  Install any text editor:

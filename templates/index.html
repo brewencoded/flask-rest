@@ -67,6 +67,7 @@
         <div class="page-wrapper">
             <h1 class="center">Register</h1>
             <form @submit="register">
+                <input type="text" placeholder="name" v-model="name">
                 <input type="email" placeholder="email" v-model="email">
                 <input type="password" placeholder="password" v-model="password">
                 <input type="password" placeholder="password again" v-model="passwordVerify">
