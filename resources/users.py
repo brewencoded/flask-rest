@@ -1,14 +1,16 @@
 """This module handles calls to the database based on URIs it recieves."""
 from flask.ext.restful import (Resource, Api, fields, marshal, marshal_with,
                                reqparse, abort)
-from flask import jsonify, Blueprint
+from flask import jsonify, Blueprint, make_response
 
 import models
 
 # Response definitions
 user_fields = {
     'name': fields.String,
-    'email': fields.String
+    'email': fields.String,
+    'password': fields.String,
+    'created_at': fields.String
 }
 
 
@@ -19,12 +21,15 @@ class UserList(Resource):
         """return a list of users."""
         users = [marshal(user, user_fields) for user in models.User.select()]
 
-        return {'users': users}
+        return (users, 201, {
+            'message': 'Found Users'
+        })
 
 
 class User(Resource):
     """Handles user methods."""
 
+    @marshal_with(user_fields)
     def get(self):
         """get a user."""
         parser = reqparse.RequestParser()
@@ -32,11 +37,13 @@ class User(Resource):
         args = parser.parse_args()
 
         try:
-            user = marshal(models.User.select().where(models.User.email == args['email']).get(), user_fields)
+            user = models.User.select().where(models.User.email == args['email']).get()
         except models.User.DoesNotExist:
             abort(404, message="User {} does not exist.".format(args['email']))
         else:
-            return {'user': user}
+            return (user, 201, {
+                'message': 'Found User'
+            })
 
     def put(self):
         """update a user."""
@@ -60,10 +67,17 @@ class User(Resource):
         parser.add_argument('password', type=str, help='password is requried', required=True)
         args = parser.parse_args()
 
-        models.User.create(**args)
-        return jsonify({'user':
-                        {'message': 'Success'}
-                        })
+        user = models.User.create_user(**args)
+        if user is None:
+            return jsonify({
+                'user': 'Empty',
+                'message': 'Email already exists'
+            })
+        else:
+            return jsonify({
+                'user': marshal(user, user_fields),
+                'message': 'User created'
+            })
 """
 Proxy to Blueprint module
 
