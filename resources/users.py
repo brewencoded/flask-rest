@@ -1,9 +1,12 @@
 """This module handles calls to the database based on URIs it recieves."""
 from flask.ext.restful import (Resource, Api, fields, marshal, marshal_with,
                                reqparse, abort)
-from flask import jsonify, Blueprint, make_response
+from flask import jsonify, Blueprint, make_response, g
+from auth import auth
 
 import models
+import json
+
 
 # Response definitions
 user_fields = {
@@ -19,7 +22,7 @@ class UserList(Resource):
 
     def get(self):
         """return a list of users."""
-        users = [marshal(user, user_fields) for user in models.User.select()]
+        users = [marshal(user, {'name': fields.String, 'email': fields.String}) for user in models.User.select()]
 
         return (users, 201, {
             'message': 'Found Users'
@@ -30,34 +33,41 @@ class User(Resource):
     """Handles user methods."""
 
     @marshal_with(user_fields)
+    @auth.login_required
     def get(self):
         """get a user."""
-        parser = reqparse.RequestParser()
-        parser.add_argument('email', type=str, help='email is required', required=True)
-        args = parser.parse_args()
-
         try:
-            user = models.User.select().where(models.User.email == args['email']).get()
-        except models.User.DoesNotExist:
-            abort(404, message="User {} does not exist.".format(args['email']))
-        else:
-            return (user, 201, {
-                'message': 'Found User'
-            })
+            user = models.User.select().where(
+                models.User.email == g.user.email
+            ).get()
+        except models.Article.DoesNotExist:
+            return make_response(json.dumps(
+                {'error': 'That user does not exist'}
+            ), 403)
+
+        return (user, 201, {
+            'message': 'Found User'
+        })
 
     def put(self):
         """update a user."""
         return jsonify({'user': 'Unimplemented Method'})
 
+    @auth.login_required
     def delete(self):
         """delete a user."""
-        parser = reqparse.RequestParser()
-        parser.add_argument('email', type=str, help='email is required', required=True)
-        args = parser.parse_args()
+        try:
+            user = models.User.select().where(
+                models.User.email == g.user.email
+            ).get()
+        except models.Article.DoesNotExist:
+            return make_response(json.dumps(
+                {'error': 'That user does not exist'}
+            ), 403)
 
-        query = models.User.delete().where(models.User.email == args['email'])
+        query = user.delete()
         query.execute()
-        return('', 204)
+        return ('Deleted', 204)
 
     def post(self):
         """create a user."""

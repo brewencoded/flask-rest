@@ -1,7 +1,10 @@
 """Database models."""
 import datetime
 import bcrypt
+import config
 from peewee import *
+from itsdangerous import (TimedJSONWebSignatureSerializer as Serializer,
+                          BadSignature, SignatureExpired)
 
 DATABASE = SqliteDatabase('app.db')
 
@@ -35,11 +38,27 @@ class User(BaseModel):
             return None
 
     @staticmethod
+    def verify_auth_token(token):
+        serializer = Serializer(config.SECRET)
+        try:
+            data = serializer.loads(token)
+        except (SignatureExpired, BadSignature):
+            return None
+        else:
+            user = User.get(User.id == data['id'])
+            return user
+
+    @staticmethod
     def set_password(password):
         return bcrypt.hashpw(password.encode('utf-8'), bcrypt.gensalt())
 
     def verify_password(self, password):
-        return bcrypt.hashpw(password.encode('utf-8'), self.password) == self.password
+        hashed = bcrypt.hashpw(password.encode('utf-8'), self.password.encode('utf-8'))
+        return hashed == self.password.encode('utf-8')
+
+    def generate_auth_token(self, expires=3600):
+        serializer = Serializer(config.SECRET, expires_in=expires)
+        return serializer.dumps({'id': self.id})
 
 
 class Article(BaseModel):
