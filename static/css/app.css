@@ -52,7 +52,8 @@ input {
 
 *[type="text"],
 *[type="email"],
-*[type="password"] {
+*[type="password"],
+textarea {
     width: 100%;
     line-height: 2.5em;
     border: .2em solid #bbb;
@@ -90,4 +91,10 @@ input {
 .article-link a:hover {
     background-color: #888;
     color: white;
+}
+
+.error {
+    background-color: red;
+    color: white;
+    padding: .5em 1em;
 }

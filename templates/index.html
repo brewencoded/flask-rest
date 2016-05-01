@@ -8,17 +8,24 @@
 <body>
     {% raw %}
     <div id="app">
+        <navigation :storage.sync="storage"></navigation>
+        <router-view :storage.sync="storage"></router-view>
+    </div>
+
+    <template id="navigation">
         <div class="header">
             <ul>
-                <li v-link-active><a v-link="{name: 'articles'}">Articles</a></li>
-                <li v-link-active><a v-link="{name: 'about'}">About</a></li>
-                <li v-link-active><a v-link="{name: 'login'}">Login</a></li>
-                <li v-link-active><a v-link="{name: 'register'}">Register</a></li>
+                <li v-if="storage.userLoggedIn" v-link-active><a v-link="{name: 'articles'}">Articles</a></li>
+                <li v-if="!storage.userLoggedIn" v-link-active><a v-link="{name: 'about'}">About</a></li>
+                <li v-link-active>
+                    <a v-if="!storage.userLoggedIn" v-link="{name: 'login'}">Login</a>
+                    <a v-if="storage.userLoggedIn" href="#" @click="logOut">Logout</a>
+                </li>
+                <li v-if="!storage.userLoggedIn" v-link-active><a v-link="{name: 'register'}">Register</a></li>
                 <li v-link-active><a v-link="{name: 'index', exact: true}">Home</a></li>
             </ul>
         </div>
-        <router-view :storage.sync="storage"></router-view>
-    </div>
+    </template>
 
     <template id="index">
         <div class="page-wrapper center">
@@ -26,11 +33,26 @@
         </div>
     </template>
 
+    <template id="profile">
+        <div class="page-wrapper center">
+            <h1>This is a protected page</h1>
+            <h3>You can only view this page if you are logged in.</h3>
+            <p>
+                This page belongs to {{storage.user.info.name}}
+            </p>
+        </div>
+    </template>
+
     <template id="articles">
         <div class="article-list page-wrapper">
             <ul class="article-link">
-                <li v-for="article in articles"><a v-link="{name: 'article', params: {id: article.id}}">{{article.title}}</a></li>
+                <li v-for="article in storage.user.data.articles"><a v-link="{name: 'article', params: {id: article.id}}">{{article.title}}</a></li>
             </ul>
+            <form @submit="addArticle">
+                <input type="text" placeholder="title" v-model="title">
+                <textarea placeholder="Article body" v-model="body"></textarea>
+                <input type="submit" value="Add">
+            </form>
         </div>
     </template>
 
@@ -55,9 +77,12 @@
     <template id="login">
         <div class="page-wrapper">
             <h1 class="center">Login</h1>
+            <p v-if="error" class="error">
+                Invalid email and password combination
+            </p>
             <form @submit="login">
-                <input type="email" placeholder="email" v-model="email">
-                <input type="password" placeholder="password" v-model="password">
+                <input type="email" placeholder="email" v-model="email" required>
+                <input type="password" placeholder="password" v-model="password" required>
                 <input type="submit" value="Login">
             </form>
         </div>
@@ -66,11 +91,13 @@
     <template id="register">
         <div class="page-wrapper">
             <h1 class="center">Register</h1>
+            <p v-if="error" class="error">
+                Registration failed
+            </p>
             <form @submit="register">
-                <input type="text" placeholder="name" v-model="name">
-                <input type="email" placeholder="email" v-model="email">
-                <input type="password" placeholder="password" v-model="password">
-                <input type="password" placeholder="password again" v-model="passwordVerify">
+                <input type="text" placeholder="name" v-model="name" required>
+                <input type="email" placeholder="email" v-model="email" required>
+                <input type="password" placeholder="password" v-model="password" required>
                 <input type="submit" value="Register">
             </form>
         </div>

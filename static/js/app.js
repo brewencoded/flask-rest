@@ -8,13 +8,68 @@
         props: ['storage']
     });
 
+    var Navigation = Vue.extend({
+        template: '#navigation',
+        props: ['storage'],
+        methods: {
+            logOut: function (e) {
+                e.preventDefault();
+                this.storage.userLoggedIn = false;
+                this.storage.user.data.articles = [];
+                delete window.localStorage.webToken;
+                delete window.localStorage.webUser;
+
+                router.go('/');
+            }
+        }
+    });
+
+    var Profile = Vue.extend({
+        template: '#profile',
+        props: ['storage']
+    });
+
     var Articles = Vue.extend({
         template: '#articles',
         props: ['storage'],
         data: function () {
             return {
-                articles: this.storage.user.data.articles
+                title: '',
+                body: ''
             };
+        },
+        methods: {
+            addArticle: function (e) {
+                e.preventDefault();
+                var component = this;
+                Vue.http.post('/api/v1/articles', {
+                    email: window.localStorage.webUser,
+                    title: component.title,
+                    body: component.body
+                },
+                {
+                    headers: {
+                        'Authorization': 'Token ' + window.localStorage.webToken
+                    }
+                })
+                .then(function(response) {
+                    if(response.data.id) {
+                        component.storage.user.data.articles.push(
+                            {
+                                id: response.data.id,
+                                title: response.data.title,
+                                body: response.data.body,
+                                created_at: response.data.created_at
+                            }
+                        );
+                    component.title = '';
+                    component.body = '';
+                    }
+                },
+                function (error) {
+
+                });
+            }
         }
     });
 
@@ -48,10 +103,12 @@
 
     var Login = Vue.extend({
         template: '#login',
+        props: ['storage'],
         data: function () {
             return {
                 email: '',
-                password: ''
+                password: '',
+                error: false
             };
         },
         methods: {
@@ -64,9 +121,26 @@
                     }
                 })
                 .then(function(response) {
-                    console.log(response);
-                    window.localStorage.webToken = response.data.token;
-                    window.localStorage.webUser = component.email;
+                    if(response.data.token) {
+                        window.localStorage.webToken = response.data.token;
+                        window.localStorage.webUser = component.email;
+                        component.error = false;
+                        Vue.http.get('/api/v1/articles', {
+                            email: window.localStorage.webUser
+                        })
+                        .then(function(response) {
+                            if(response.data && response.data.length > 0) {
+                                component.storage.user.data.articles = response.data;
+                                router.go('/profile');
+                            }
+                        },
+                        function(error) {
+                            console.log(error);
+                        });
+
+                    } else {
+                        component.error = true;
+                    }
                 },
                 function (error) {
                     console.log('token retrieval failed');
@@ -82,7 +156,7 @@
                 name: '',
                 email: '',
                 password: '',
-                passwordVerify: ''
+                error: false
             };
         },
         methods: {
@@ -101,9 +175,14 @@
                             password: component.password
                         })
                         .then(function(response) {
-                            console.log(reponse);
-                            window.localStorage.webToken = response.data.token;
-                            window.localStorage.webUser = component.email;
+                            if(response.data.name) {
+                                window.localStorage.webToken = response.data.token;
+                                window.localStorage.webUser = component.email;
+                                component.error = false;
+                                router.go('/profile');
+                            } else {
+                                component.error = true;
+                            }
                         },
                         function (error) {
                             console.log('token retrieval failed');
@@ -125,28 +204,36 @@
 
     // Router
     var Root = Vue.extend({
-        compiled: function () {
-            // check if has token
-            if(window.localStorage.webToken != undefined) {
-                // make sure token is still valid and if it is, get user data
-                Vue.http.get('/api/v1/user', {
-                    email: window.localStorage.webUser
-                },
-                {
-                    headers: {
-                        'Authorization': 'Token ' + window.localStorage.webToken
-                    }
-                })
-                .then(function (response) {
-                    console.log(response);
-                },
-                function (error) {
-                    console.log(error);
-                });
-            } else {
-
-            }
-
+        beforeCompile: function () {
+            var component = this;
+            // make sure token is still valid and if it is, get user data
+            Vue.http.get('/api/v1/users/token',
+            {},
+            {
+                headers: {
+                    'Authorization': 'Token ' + window.localStorage.webToken
+                }
+            })
+            .then(function (response) {
+                if(response.data.token) {
+                    router.app.storage.userLoggedIn = true;
+                    Vue.http.get('/api/v1/articles', {
+                        email: window.localStorage.webUser
+                    })
+                    .then(function(response) {
+                        if(response.data && response.data.length > 0) {
+                            component.storage.user.data.articles = response.data;
+                        }
+                    },
+                    function(error) {
+                        console.log(error);
+                    });
+                }
+            },
+            function (error) {
+                console.log(error);
+                console.log('logged out')
+            });
         },
         data: function () {
             return {
@@ -157,33 +244,68 @@
                         },
                         data: {
                             articles: [
-                                {
-                                    id: 1,
-                                    title: 'article 1',
-                                    body: 'Lorem ipsum dolor sit amet, deleniti consulatu ius no. Ei noster voluptatum quo. Et propriae voluptatum sed. Has tale eloquentiam definitionem an, sit prompta consulatu interesset eu. At sale nonumy officiis eam.'
-                                },
-                                {
-                                    id: 2,
-                                    title: 'article 2',
-                                    body: 'Te sea wisi posse veniam, ius cu dico affert omnesque. Mel latine alterum repudiare ad, at sea nulla aliquid. In nam persius commune, at soleat cotidieque eos. Sale everti cu sit, ea per indoctum mediocrem interpretaris.'
-                                },
-                                {
-                                    id: 3,
-                                    title: 'article 3',
-                                    body: 'Ea vim aperiam saperet. Vim liber omnesque luptatum ex, ne dicam graeco adversarium mel, decore detracto ea qui. Mei ad vide aliquam lucilius, est eu quas iuvaret. Ex viris incorrupte nec, eu aeque dolor per. Ne error elitr tollit has, iusto omittam aliquando id duo.'
-                                }
                             ]
                         }
                     },
-                    userLoggedIn: true
+                    userLoggedIn: false
                 }
             };
+        },
+        components: {
+            navigation: Navigation
         }
     });
 
     var router = new VueRouter({
         hashbang: false,
         history: true
+    });
+
+    router.beforeEach(function (transition) {
+        if (transition.to.auth || transition.to.path === '/') {
+            // check if has token
+            if(window.localStorage.webToken) {
+                // make sure token is still valid and if it is, get user data
+                Vue.http.get('/api/v1/user', {
+                    email: window.localStorage.webUser
+                },
+                {
+                    headers: {
+                        'Authorization': 'Token ' + window.localStorage.webToken
+                    }
+                })
+                .then(function (response) {
+                    if(response.data.name) {
+                        if(!router.app.storage.userLoggedIn) {
+                            router.app.storage.userLoggedIn = true;
+                        }
+
+                        if(transition.to.path === '/') {
+                            transition.redirect('/profile');
+                        } else {
+                            transition.next();
+                        }
+                    } else {
+                        delete window.localStorage.webToken;
+                        delete window.localStorage.webUser;
+                        if(router.app.storage.userLoggedIn) {
+                            router.app.storage.userLoggedIn = false;
+                        }
+
+                        transition.redirect('/login');
+                    }
+
+                },
+                function (error) {
+                    console.log(error);
+                    console.log('logged out')
+                });
+            } else {
+                transition.next();
+            }
+        } else {
+            transition.next()
+        }
     });
 
     router.map({
@@ -197,11 +319,13 @@
         },
         '/articles': {
             name: 'articles',
-            component: Articles
+            component: Articles,
+            auth: true
         },
         '/article/:id': {
             name: 'article',
-            component: Article
+            component: Article,
+            auth: true
         },
         '/login': {
                 name: 'login',
@@ -214,6 +338,11 @@
         '/404': {
             name: '404',
             component: NotFound
+        },
+        '/profile': {
+            name: 'profile',
+            component: Profile,
+            auth: true
         }
     });
 
